@@ -7,12 +7,12 @@ from threading import Thread
 TAG = "[WaterPump] "
 class WaterPump():
     def __init__(self, max_mlps, pwm, in1, in2):
-        self.max_mlps = max_mlps;
-        self.pin_pwd = pwm;
-        self.pin_in1 = in1;
-        self.pin_in2 = in2;
-        self.mililiter_per_sec = 0;
-        self.thread = Thread(target=self.pump)
+        self.max_mlps = max_mlps
+        self.pin_pwd = pwm
+        self.pin_in1 = in1
+        self.pin_in2 = in2
+        self.mililiter_per_sec = 0
+        self.thread = None
 
     def pump(self):
         print(TAG + "started")
@@ -25,8 +25,10 @@ class WaterPump():
             GPIO.output(self.pin_pwd, GPIO.OUT)
             time.sleep(delay/2)
         print(TAG + "stopped")
+        self.thread = None
 
     def setup(self):
+        print(TAG + "setup")
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pin_pwd, GPIO.OUT, initial=GPIO.DOWN)
         GPIO.setup(self.pin_in1, GPIO.OUT, initial=GPIO.HIGH)
@@ -34,8 +36,15 @@ class WaterPump():
 
     def set_speed(self, gpm):
         self.mililiter_per_sec = gpm
-        if not self.thread.isAlive():
-            self.thread.start()
+        if gpm > 0:
+            if self.thread == None:
+                print(TAG + "creating thread..")
+                self.thread = Thread(target=self.pump)
+            if not self.thread.isAlive():
+                print(TAG + "starting thread..")
+                self.thread.start()
+            else:
+                print(TAG + "thread is alive")
 
     def destroy(self):
         GPIO.output(self.pin_pwd, GPIO.DOWN)
