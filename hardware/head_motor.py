@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
-import GPIO
 import time
 from threading import Thread
+
+import GPIO
 
 TAG = "[HeadMotor] "
 class HeadMotor():

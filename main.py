@@ -1,12 +1,9 @@
 #!/usr/bin/python
 
-import threading
-from water_pump import WaterPump
-from head_motor import HeadMotor
+from hardware.head_motor import HeadMotor
+from hardware.water_pump import WaterPump
 
-# 29 gallon per hour (== 30ml per sec)
-# GPIO pin assignment for PWM/IN1/IN2
-water_pump = WaterPump(30, 20, 21, 22)
+water_pump = WaterPump(30, 20, 21)
 water_pump.setup()
 
 # GPIO pin assignment for AIN1/AIN2/BIN1/BIN2
