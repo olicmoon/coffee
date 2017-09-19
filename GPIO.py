@@ -25,5 +25,5 @@ def setup(pin, mode, initial):
 
 
 def output(pin, val):
-    print(TAG + "output [pin", pin, "] [val:", val, "]");
+    # print(TAG + "output [pin", pin, "] [val:", val, "]");
     return None

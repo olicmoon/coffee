@@ -6,24 +6,29 @@ from threading import Thread
 
 TAG = "[WaterPump] "
 class WaterPump():
-    def __init__(self, max_mlps, pwm, in1, in2):
+    def __init__(self, max_mlps, pwm, in2):
         self.max_mlps = max_mlps
         self.pin_pwd = pwm
-        self.pin_in1 = in1
         self.pin_in2 = in2
-        self.mililiter_per_sec = 0
+        self.mlps = 0.0
         self.thread = None
+        self.divider = 100
 
     def pump(self):
         print(TAG + "started")
-        while self.mililiter_per_sec > 0:
-            print(TAG + "mililiter_per_sec: ", self.mililiter_per_sec)
-            delay = (1.0 / self.max_mlps) * self.mililiter_per_sec
-            print(TAG + "delay: ", delay)
-            GPIO.output(self.pin_pwd, GPIO.HIGH)
-            time.sleep(delay/2)
-            GPIO.output(self.pin_pwd, GPIO.OUT)
-            time.sleep(delay/2)
+        while self.mlps > 0:
+            print(TAG + "mililiter_per_sec: ", self.mlps)
+            motor_delay = (1.0 / self.max_mlps) * (self.max_mlps - self.mlps)
+            print(TAG + "motor_delay: ", motor_delay)
+            if motor_delay == 0:
+                break
+
+            for i in range(0, self.divider, 1):
+                GPIO.output(self.pin_pwd, GPIO.HIGH)
+                time.sleep(((motor_delay / 2) / self.divider))
+                GPIO.output(self.pin_pwd, GPIO.DOWN)
+                time.sleep(((motor_delay / 2) / self.divider))
+
         print(TAG + "stopped")
         self.thread = None
 
@@ -31,11 +36,10 @@ class WaterPump():
         print(TAG + "setup")
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.pin_pwd, GPIO.OUT, initial=GPIO.DOWN)
-        GPIO.setup(self.pin_in1, GPIO.OUT, initial=GPIO.HIGH)
         GPIO.setup(self.pin_in2, GPIO.OUT, initial=GPIO.DOWN)
 
     def set_speed(self, gpm):
-        self.mililiter_per_sec = gpm
+        self.mlps = gpm
         if gpm > 0:
             if self.thread == None:
                 print(TAG + "creating thread..")
