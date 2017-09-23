@@ -1,30 +1,35 @@
 #!/usr/bin/python
 
-import GPIO
-import time
 from threading import Thread
 from hx711 import HX711
 
 calibration_factor = 100 # TODO: for test only
 
-TAG = "[WeightScale] "
 class WeightScale():
     def __init__(self, dout, sck):
         self.hx711 = HX711(dout, sck)
         self.thread = None
+        self.run = True
 
     def main(self):
         self.setup()
 
-        print(TAG + "started")
-        while True:
+        while self.run:
             val = self.hx711.get_value(3)
             print val
 
         self.thread = None
 
+    def get(self):
+        return self.hx711.get_value(3)
+
+    def reset(self):
+        self.hx711.reset()
+
+    def tare(self):
+        self.hx711.tare()
+
     def setup(self):
-        print(TAG + "setup")
         self.hx711.power_up()
         self.hx711.tare()
         self.hx711.set_reading_format("LSB", "MSB")
@@ -32,15 +37,11 @@ class WeightScale():
 
     def start(self):
         if self.thread == None:
-            print(TAG + "creating thread..")
             self.thread = Thread(target=self.main)
         if not self.thread.isAlive():
-            print(TAG + "starting thread..")
             self.thread.start()
-        else:
-            print(TAG + "thread is alive")
 
     def destroy(self):
+        self.run = False
         self.hx711.power_down()
-        GPIO.cleanup()
 

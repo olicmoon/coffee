@@ -1,4 +1,4 @@
-import GPIO
+import RPi.GPIO as GPIO
 import time
 import numpy  # sudo apt-get python-numpy
 
@@ -132,12 +132,12 @@ class HX711:
        
         # Backup REFERENCE_UNIT value
         reference_unit = self.REFERENCE_UNIT
-        self.set_reference_unit(1)
+        self.set_calibration_factor(1)
 
         value = self.read_average(times)
         self.set_offset(value)
 
-        self.set_reference_unit(reference_unit)
+        self.set_calibration_factor(reference_unit)
 
     def set_reading_format(self, byte_format="LSB", bit_format="MSB"):
         if byte_format == "LSB":
