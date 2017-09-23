@@ -7,10 +7,9 @@ from hardware.weight_scale import WeightScale
 class Brewer():
     def main(self):
         self.water_pump = WaterPump(30, 20, 16)
-        self.water_pump.setup()
 
         # GPIO pin assignment for AIN1/AIN2/BIN1/BIN2
-        self.head_motor = HeadMotor(10, 11, 12, 13)
+        self.head_motor = HeadMotor(6, 13, 19, 26)
 
         self.weight_scale = WeightScale(23, 24)
         self.weight_scale.setup()
@@ -26,6 +25,9 @@ class Brewer():
 
     def set_pump_speed(self, ml_per_sec):
         self.water_pump.set_speed(ml_per_sec)
+
+    def set_head_speed(self, speed):
+        self.head_motor.set_speed(speed)
 
     def shutdown(self):
         self.head_motor.destroy()

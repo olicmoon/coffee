@@ -13,6 +13,9 @@ class WaterPump():
         self.mlps = 0.0
         self.thread = None
         self.divider = 100
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.pin_pwd, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.pin_in2, GPIO.OUT, initial=GPIO.HIGH)
 
     def pump(self):
         while self.mlps > 0:
@@ -21,17 +24,15 @@ class WaterPump():
                 break
 
             for i in range(0, self.divider, 1):
+                if self.mlps == 0:
+                    GPIO.output(self.pin_pwd, GPIO.LOW)
+                    break;
                 GPIO.output(self.pin_pwd, GPIO.HIGH)
                 time.sleep(((motor_delay / 2) / self.divider))
                 GPIO.output(self.pin_pwd, GPIO.LOW)
                 time.sleep(((motor_delay / 2) / self.divider))
 
         self.thread = None
-
-    def setup(self):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.pin_pwd, GPIO.OUT, initial=GPIO.LOW)
-        GPIO.setup(self.pin_in2, GPIO.OUT, initial=GPIO.HIGH)
 
     def set_speed(self, gpm):
         if self.thread == None:
@@ -47,5 +48,4 @@ class WaterPump():
         self.mlps = 0
         GPIO.output(self.pin_in2, GPIO.LOW)
         GPIO.output(self.pin_pwd, GPIO.LOW)
-        GPIO.cleanup()
 
