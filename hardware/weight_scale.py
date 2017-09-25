@@ -3,11 +3,10 @@
 from threading import Thread
 from hx711 import HX711
 
-calibration_factor = 100 # TODO: for test only
-
 class WeightScale():
     def __init__(self, dout, sck):
         self.hx711 = HX711(dout, sck)
+        self.scale_unit = 1000
         self.thread = None
         self.run = True
 
@@ -21,7 +20,10 @@ class WeightScale():
         self.thread = None
 
     def get(self):
-        return self.hx711.get_value(3)
+        v = self.hx711.get_value(3)
+        if v < 0:
+            return 0
+        return (v / self.scale_unit)
 
     def reset(self):
         self.hx711.reset()
@@ -29,11 +31,16 @@ class WeightScale():
     def tare(self):
         self.hx711.tare()
 
+    def set_calibration_factor(self, calibration_unit):
+        self.hx711.set_calibration_factor(calibration_unit)
+
+    def set_scale_unit(self, scale_unit):
+        self.scale_unit = scale_unit
+
     def setup(self):
         self.hx711.power_up()
         self.hx711.tare()
         self.hx711.set_reading_format("LSB", "MSB")
-        self.hx711.set_calibration_factor(calibration_factor)
 
     def start(self):
         if self.thread == None:

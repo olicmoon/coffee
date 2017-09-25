@@ -33,14 +33,18 @@ class HeadMotor():
             if counter > 3:
                 counter = 0
 
+            if self.speed == 0:
+                break
             # print "delay" + `(0.001 * float(10 - self.speed))`
             time.sleep(0.001 * float(11 - self.speed))
+
+        for pin in self.step_pins:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, GPIO.LOW)
 
         self.thread = None
 
     def set_speed(self, speed):
-        if speed == 0:
-            speed = 1
         if speed > 10:
             speed = 10
         self.speed = speed
@@ -54,7 +58,9 @@ class HeadMotor():
 
     def destroy(self):
         self.speed = 0
-        GPIO.cleanup()
-
+        GPIO.setmode(GPIO.BCM)
+        for pin in self.step_pins:
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, GPIO.LOW)
 # h = HeadMotor(6, 13, 19, 26)
 # h.set_speed(10)

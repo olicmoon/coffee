@@ -5,7 +5,6 @@ import curses
 
 import time
 
-
 class CommandUI():
     def __init__(self, b):
         self.brewer = b
@@ -29,52 +28,96 @@ class CommandUI():
         raw_input("Press enter")
         print ""
 
+    def start_brewing(self, head_speed, pump_speed, taret_weight):
+        self.head_speed = head_speed
+        self.pump_speed = pump_speed
+        self.target_weight = taret_weight
+        self.brewer.tare_weight()
+        self.brewer.set_pump_speed(self.pump_speed)
+        self.brewer.set_head_speed(self.head_speed)
+
+    def update(self, progress):
+        if progress < 10:
+            self.pump_speed = 10
+        elif progress < 20:
+            self.pump_speed = 20
+        elif progress < 50:
+            self.pump_speed = 80
+        elif progress < 80:
+            self.pump_speed = 20
+        elif progress < 90:
+            self.pump_speed = 15
+        else:
+            self.pump_speed = 10
+
+        self.brewer.set_pump_speed(self.pump_speed)
+
+    def finish_brewing(self):
+        self.head_speed = 0
+        self.pump_speed = 0
+        self.brewer.set_pump_speed(self.pump_speed)
+        self.brewer.set_head_speed(self.head_speed)
+
     def start(self):
         x = 0
-        head_speed = 0
-        pump_speed = 0
-        progress_col = 20
+        self.target_weight = 0
+        self.head_speed = 0
+        self.pump_speed = 0
+        progress = -1
+
         while x != ord('q'):
             screen = curses.initscr()
 
+            weight = self.brewer.weight_scale.get()
+            if weight > self.target_weight:
+                self.finish_brewing()
+
             screen.border(0)
-            screen.addstr(1, 2, "[q] shutdown [s] start [t] tare scale", curses.A_UNDERLINE)
-            screen.addstr(2, 2, "[o] inc pump speed [p] dec pump speed [k] inc head speed [l] dec head speed", curses.A_UNDERLINE)
-            screen.addstr(4, 4, "Water pump speed: " + `pump_speed`, curses.COLOR_CYAN)
-            screen.addstr(5, 4, "Head motor speed: " + `head_speed`, curses.COLOR_CYAN)
-            screen.addstr(6, 4, "Weight: " + `self.brewer.weight_scale.get()`, curses.COLOR_CYAN)
+            screen.addstr(1, 2, "[q] shutdown [s] start brewing [f] finish brewing", curses.A_UNDERLINE)
+            screen.addstr(2, 2, "[t] tare scale", curses.A_UNDERLINE)
+            screen.addstr(3, 2, "[o] inc pump speed [p] dec pump speed [k] inc head speed [l] dec head speed", curses.A_UNDERLINE)
+            screen.addstr(5, 4, "Water pump speed [10 - 100]: " + str(self.pump_speed).zfill(3), curses.COLOR_CYAN)
+            screen.addstr(6, 4, "Head motor speed: " + str(self.head_speed).zfill(2), curses.COLOR_CYAN)
+            screen.addstr(7, 4, "Weight: " + str(weight).zfill(4), curses.COLOR_CYAN)
             screen.refresh()
 
             screen.nodelay(1)
             x = screen.getch()
             time.sleep(0.5)
 
+            if progress != -1:
+                progress = (weight * 100) / self.target_weight
+                screen.addstr(14, 4, "Progress " + str(`progress`).zfill(4) + "%", curses.COLOR_RED)
+                self.update(progress)
+
             if x == ord('s'):
-                head_speed = 8
-                pump_speed = 5
-                screen.addstr(progress_col, 4, "Starting..")
-                self.brewer.tare_weight()
-                self.brewer.set_pump_speed(pump_speed)
-                self.brewer.set_head_speed(head_speed)
+                screen.addstr(15, 4, "Starting..", curses.COLOR_RED)
+                self.start_brewing(8, 15, 150)
+                progress = 0
+                curses.endwin()
+            if x == ord('f'):
+                progress = -1
+                screen.addstr(15, 4, "Finished..", curses.COLOR_RED)
+                self.finish_brewing()
                 curses.endwin()
             if x == ord('o'):
-                if pump_speed < 29:
-                    pump_speed += 1
-                self.brewer.set_pump_speed(pump_speed)
+                if self.pump_speed < 100:
+                    self.pump_speed += 10
+                self.brewer.set_pump_speed(self.pump_speed)
             if x == ord('p'):
-                pump_speed -= 1
-                if pump_speed < 0:
-                    pump_speed = 0
-                self.brewer.set_pump_speed(pump_speed)
+                self.pump_speed -= 10
+                if self.pump_speed < 0:
+                    self.pump_speed = 0
+                self.brewer.set_pump_speed(self.pump_speed)
             if x == ord('k'):
-                if head_speed < 10:
-                    head_speed += 1
-                self.brewer.set_head_speed(head_speed)
+                if self.head_speed < 10:
+                    self.head_speed += 1
+                self.brewer.set_head_speed(self.head_speed)
             if x == ord('l'):
-                head_speed -= 1
-                if head_speed < 0:
-                    head_speed = 0
-                self.brewer.set_head_speed(head_speed)
+                self.head_speed -= 1
+                if self.head_speed < 0:
+                    self.head_speed = 0
+                self.brewer.set_head_speed(self.head_speed)
             if x == ord('t'):
                 self.brewer.tare_weight()
                 curses.endwin()
